@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Missed Class Helper</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            margin: 0;
+            color: white;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 220px;
+            background: #1e1e2f;
+            padding: 15px;
+            height: 100vh;
+        }
+
+        .sidebar h3 {
+            color: #00ffcc;
+        }
+
+        .sidebar button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .main {
+            flex: 1;
+            text-align: center;
+        }
+
+        .box {
+            background: white;
+            color: black;
+            padding: 20px;
+            margin: 30px auto;
+            width: 340px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px black;
+        }
+
+        input, textarea, select {
+            width: 90%;
+            margin: 5px;
+            padding: 8px;
+        }
+
+        button {
+            padding: 10px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .hidden { display: none; }
+
+        .entry {
+            text-align: left;
+            background: #f0f0f0;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 8px;
+        }
+
+        .save { background: #4CAF50; color: white; }
+        .submit { background: #2196F3; color: white; }
+    </style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h3>🚧 Prototype</h3>
+    <p>Early version of the app.</p>
+
+    <h3>💬 Feedback</h3>
+    <button onclick="openFeedback()">Give Feedback</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<h1>Missed Class Helper 📚</h1>
+
+<!-- LOGIN -->
+<div class="box" id="loginPage">
+    <h2>Login 🏫</h2>
+
+    <input type="text" id="school" placeholder="School Name">
+    <input type="text" id="name" placeholder="Your Name">
+
+    <button onclick="login()">Enter</button>
+</div>
+
+<!-- HOME -->
+<div class="box hidden" id="homePage">
+
+    <h2 id="welcome"></h2>
+
+    <h3>Add Work</h3>
+
+    <select id="subject">
+        <option>Math</option>
+        <option>Science</option>
+        <option>English</option>
+    </select>
+
+    <input type="text" id="hwInput" placeholder="Homework">
+    <textarea id="summaryInput" placeholder="Notes"></textarea>
+
+    <button class="save" onclick="saveWork()">Save Locally</button>
+    <button class="submit" onclick="submitWork()">Submit to Class 🌐</button>
+    <button onclick="makeSummary()">AI Summary 🤖</button>
+
+    <h3>History</h3>
+    <div id="history"></div>
+
+    <!-- 🔥 NEW: GOOGLE SHEET DISPLAY -->
+    <h3>📊 Class Submissions</h3>
+
+    <iframe 
+        src="https://docs.google.com/spreadsheets/d/1BCRKFK38_WBf1N0zj_EACu4nSLB3HS9HpirY5YhZAu0/preview"
+        width="100%" 
+        height="300"
+        style="border-radius:10px;">
+    </iframe>
+
+    <button onclick="logout()">Logout</button>
+
+</div>
+
+</div>
+
+<script>
+// LOGIN
+function login() {
+    let school = document.getElementById("school").value;
+    let name = document.getElementById("name").value;
+
+    if (school && name) {
+        localStorage.setItem("school", school);
+        localStorage.setItem("name", name);
+        showHome();
+    } else {
+        alert("Fill all fields!");
+    }
+}
+
+function showHome() {
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("homePage").classList.remove("hidden");
+
+    document.getElementById("welcome").innerText =
+        "Welcome " + localStorage.getItem("name");
+
+    displayHistory();
+}
+
+// LOCAL SAVE
+function saveWork() {
+    let subject = document.getElementById("subject").value;
+    let hw = document.getElementById("hwInput").value;
+    let summary = document.getElementById("summaryInput").value;
+
+    let entry = {
+        subject,
+        hw,
+        summary,
+        date: new Date().toLocaleString()
+    };
+
+    let data = JSON.parse(localStorage.getItem("history")) || [];
+    data.push(entry);
+
+    localStorage.setItem("history", JSON.stringify(data));
+
+    displayHistory();
+}
+
+// DISPLAY LOCAL HISTORY
+function displayHistory() {
+    let data = JSON.parse(localStorage.getItem("history")) || [];
+    let historyDiv = document.getElementById("history");
+
+    historyDiv.innerHTML = "";
+
+    data.slice().reverse().forEach(item => {
+        historyDiv.innerHTML += `
+            <div class="entry">
+                <b>${item.subject}</b> (${item.date})<br>
+                <b>HW:</b> ${item.hw}<br>
+                <b>Summary:</b> ${item.summary}
+            </div>
+        `;
+    });
+}
+
+// GOOGLE FORM SUBMIT
+function submitWork() {
+    window.open("https://docs.google.com/forms/d/e/1FAIpQLSexyTrAbndKJ-XyL6vpclPUHflxvXet6PmSJKNvI7zuoLXw1A/viewform");
+}
+
+// FEEDBACK FORM
+function openFeedback() {
+    window.open("https://docs.google.com/forms/d/e/1FAIpQLSdMDNPOSfh6py5U9K0G7Piv_9QFDb2FAL-faZylQsA_iN044Q/viewform");
+}
+
+// AI HELPER
+function makeSummary() {
+    let text = document.getElementById("summaryInput").value;
+
+    if (text.length < 10) {
+        alert("Write more notes first!");
+        return;
+    }
+
+    let prompt = "Summarize this in simple student language:\n\n" + text;
+
+    alert("Copy this into ChatGPT:\n\n" + prompt);
+}
+
+// LOGOUT
+function logout() {
+    localStorage.clear();
+    location.reload();
+}
+
+// AUTO LOGIN
+window.onload = function() {
+    if (localStorage.getItem("name")) {
+        showHome();
+    }
+}
+</script>
+
+</body>
+</html>
